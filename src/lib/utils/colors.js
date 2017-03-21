@@ -29,7 +29,7 @@ export function getColorList(colors) {
 
   // For backwards compatibility
   const colorsList = {}
-  colors.forEach( ( color, index ) => {
+  colors.forEach((color, index) => {
     colorsList[colorList[index]] = color
   });
 
