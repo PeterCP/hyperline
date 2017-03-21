@@ -47,7 +47,7 @@ export function componentFactory(React, colors) {
   const PluginWrapper = pluginWrapperFactory(React)
 
   const BranchIcon = ({ fillColor, style }) => (
-    <svg className="hyperline_plugin_icon" style={style}
+    <svg className="statline_plugin_icon" style={style}
         viewBox="0 0 9 12" xmlns="http://www.w3.org/2000/svg">
       <path fill={fillColor} fillRule="evenodd" d={
         'M9,3.42857746 C9,2.47714888 8.199,1.71429174 7.2,1.71429174 ' +

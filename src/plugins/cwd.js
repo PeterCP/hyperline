@@ -23,7 +23,7 @@ export function componentFactory(React, colors) {
   const PluginWrapper = pluginWrapperFactory(React)
 
   const FolderIcon = ({ fillColor }) => (
-    <svg className="hyperline_plugin_icon" viewBox="0 0 14 12"
+    <svg className="statline_plugin_icon" viewBox="0 0 14 12"
         xmlns="http://www.w3.org/2000/svg">
       <path fill={fillColor} fillRule="evenodd" d={
         'M13,2 L7,2 L7,1 C7,0.34 6.69,0 6,0 L1,0 C0.45,0 0,0.45 0,1 L0,11 ' +

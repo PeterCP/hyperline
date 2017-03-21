@@ -3,7 +3,7 @@ export default (React) => {
     let style = color ? { color } : {}
 
     return (
-      <div style={style} className="hyperline_plugin">
+      <div style={style} className="statline_plugin">
         {children}
       </div>
     )

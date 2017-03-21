@@ -45,14 +45,14 @@ function mergePluginConfigs(defaultPlugins, userPlugins, notify) {
     const { name, options = false } = plugin
 
     if (typeof plugin !== 'object' || Array.isArray(plugin)) {
-      notify('HyperLine', '\'plugins\' array members in \'.hyper.js\' must be objects.')
+      notify('StatLine', '\'plugins\' array members in \'.hyper.js\' must be objects.')
       return newPlugins
     }
 
     const defaultPlugin = getPluginFromListByName(defaultPlugins, name)
 
     if (!defaultPlugin || !defaultPlugin.options) {
-      notify('HyperLine', `Plugin with name "${name}" does not exist.`)
+      notify('StatLine', `Plugin with name "${name}" does not exist.`)
       return newPlugins
     }
 
@@ -64,7 +64,7 @@ function mergePluginConfigs(defaultPlugins, userPlugins, notify) {
     if (validator) {
       const errors = validator(newPlugin.options)
       if (errors.length > 0) {
-        errors.forEach(error => notify(`HyperLine '${name}' plugin`, error))
+        errors.forEach(error => notify(`StatLine '${name}' plugin`, error))
         newPlugin.options = defaultOptions
       }
     }

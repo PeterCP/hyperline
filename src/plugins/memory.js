@@ -19,7 +19,7 @@ export function componentFactory(React, colors) {
   const { Component, PropTypes } = React
 
   const PluginIcon = ({ fillColor }) => (
-    <svg className="hyperline_plugin_icon" xmlns="http://www.w3.org/2000/svg">
+    <svg className="statline_plugin_icon" xmlns="http://www.w3.org/2000/svg">
       <g fill="none" fillRule="evenodd">
         <g fill={fillColor}>
           <g id="memory" transform="translate(1.000000, 1.000000)">

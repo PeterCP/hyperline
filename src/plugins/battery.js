@@ -32,7 +32,7 @@ export function componentFactory(React, colors) {
 
     const states = {
       CHARGING: (
-        <svg className="hyperline_plugin_icon" xmlns="http://www.w3.org/2000/svg">
+        <svg className="statline_plugin_icon" xmlns="http://www.w3.org/2000/svg">
           <g fillRule="evenodd">
             <g fill={fillColor}>
               <path d={
@@ -47,7 +47,7 @@ export function componentFactory(React, colors) {
         </svg>
       ),
       DISCHARGING: (
-        <svg className="hyperline_plugin_icon" xmlns="http://www.w3.org/2000/svg">
+        <svg className="statline_plugin_icon" xmlns="http://www.w3.org/2000/svg">
           <g fillRule="evenodd">
             <g fill={fillColor}>
               <path d={
@@ -59,7 +59,7 @@ export function componentFactory(React, colors) {
         </svg>
       ),
       CRITICAL: (
-        <svg className="hyperline_plugin_icon" xmlns="http://www.w3.org/2000/svg">
+        <svg className="statline_plugin_icon" xmlns="http://www.w3.org/2000/svg">
           <g fillRule="evenodd">
             <g fill={fillColor}>
               <path d={
