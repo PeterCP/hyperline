@@ -1,12 +1,12 @@
-import * as hostname from './hostname'
 import * as git from './git'
 import * as cwd from './cwd'
-import * as ip from './ip'
-import * as memory from './memory'
-import * as uptime from './uptime'
-import * as cpu from './cpu'
-import * as network from './network'
 import * as battery from './battery'
+import * as network from './network'
+import * as cpu from './cpu'
+import * as memory from './memory'
+import * as ip from './ip'
+import * as hostname from './hostname'
+import * as uptime from './uptime'
 
 /**
  * Exports a mapping from plugin name to associated component factory.
@@ -15,11 +15,11 @@ import * as battery from './battery'
 export default {
   git,
   cwd,
-  hostname,
-  ip,
-  memory,
-  uptime,
-  cpu,
+  battery,
   network,
-  battery
+  cpu,
+  memory,
+  ip,
+  hostname,
+  uptime
 }
