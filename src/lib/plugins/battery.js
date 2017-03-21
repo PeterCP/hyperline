@@ -1,8 +1,24 @@
-import { iconStyles } from '../utils/icons'
 import { colorExists } from '../utils/colors'
-import pluginWrapperFactory from '../core/PluginWrapper'
+import pluginWrapperFactory from './PluginWrapper'
 
-export function componentFactory(React, colors ) {
+export const defaultOptions = {
+  colors: {
+    fine: 'lightGreen',
+    critical: 'lightRed'
+  }
+}
+
+function getInstanceOptions(colors, defaults, config) {
+  const options = Object.assign({}, defaults, config)
+  for (let key of Object.keys(defaults.colors)) {
+    if (!colorExists(options.colors[key])) {
+      options.colors[key] = defaults.colors[key]
+    }
+  }
+  return options
+}
+
+export function componentFactory(React, colors) {
   const { Component, PropTypes } = React
 
   const PluginIcon = ({ state, fillColor }) => {
@@ -16,37 +32,49 @@ export function componentFactory(React, colors ) {
 
     const states = {
       CHARGING: (
-        <svg style={iconStyles} xmlns="http://www.w3.org/2000/svg">
+        <svg className="hyperline_plugin_icon" xmlns="http://www.w3.org/2000/svg">
           <g fillRule="evenodd">
             <g fill={fillColor}>
-              <path d="M9,10 L10,10 L10,9 L6,9 L6,10 L7,10 L7,13 L9,13 L9,10 Z M7,1 L9,1 L9,2 L7,2 L7,1 Z M4,2 L12,2 L12,15 L4,15 L4,2 Z M5,6 L11,6 L11,7 L5,7 L5,6 Z M5,7 L11,7 L11,8 L5,8 L5,7 Z M5,8 L11,8 L11,9 L5,9 L5,8 Z M9,4 L10,4 L10,6 L9,6 L9,4 Z M6,4 L7,4 L7,6 L6,6 L6,4 Z"></path>
+              <path d={
+                'M9,10 L10,10 L10,9 L6,9 L6,10 L7,10 L7,13 L9,13 L9,10 Z ' +
+                'M7,1 L9,1 L9,2 L7,2 L7,1 Z M4,2 L12,2 L12,15 L4,15 L4,2 ' +
+                'Z M5,6 L11,6 L11,7 L5,7 L5,6 Z M5,7 L11,7 L11,8 L5,8 L5,7 ' +
+                'Z M5,8 L11,8 L11,9 L5,9 L5,8 Z M9,4 L10,4 L10,6 L9,6 L9,4 ' +
+                'Z M6,4 L7,4 L7,6 L6,6 L6,4 Z'
+              }></path>
             </g>
           </g>
         </svg>
       ),
       DISCHARGING: (
-        <svg style={iconStyles} xmlns="http://www.w3.org/2000/svg">
+        <svg className="hyperline_plugin_icon" xmlns="http://www.w3.org/2000/svg">
           <g fillRule="evenodd">
             <g fill={fillColor}>
-              <path d={`M7,1 L9,1 L9,2 L7,2 L7,1 Z M4,2 L12,2 L12,15 L4,15 L4,2 Z ${calcCharge(state.percent)}`}></path>
+              <path d={
+                'M7,1 L9,1 L9,2 L7,2 L7,1 Z M4,2 L12,2 L12,15 ' +
+                `L4,15 L4,2 Z ${calcCharge(state.percent)}`
+              }></path>
             </g>
           </g>
         </svg>
       ),
       CRITICAL: (
-        <svg style={iconStyles} xmlns="http://www.w3.org/2000/svg">
+        <svg className="hyperline_plugin_icon" xmlns="http://www.w3.org/2000/svg">
           <g fillRule="evenodd">
             <g fill={fillColor}>
-              <path d="M7,1 L9,1 L9,2 L7,2 L7,1 Z M4,2 L12,2 L12,15 L4,15 L4,2 Z M5,3 L11,3 L11,11 L5,11 L5,3 Z"></path>
+              <path d={
+                'M7,1 L9,1 L9,2 L7,2 L7,1 Z M4,2 L12,2 L12,15 ' +
+                'L4,15 L4,2 Z M5,3 L11,3 L11,11 L5,11 L5,3 Z'
+              }></path>
             </g>
           </g>
         </svg>
       )
     }
 
-    if ( state.percent <= 20 && !state.ischarging ) {
+    if (state.percent <= 20 && !state.ischarging) {
       return states.CRITICAL
-    } else if ( !state.ischarging ) {
+    } else if (!state.ischarging) {
       return states.DISCHARGING
     }
 
@@ -64,15 +92,23 @@ export function componentFactory(React, colors ) {
       }
     }
 
-    constructor( props ) {
-      super(props )
+    constructor(props) {
+      super(props)
+
+      this.options = getInstanceOptions(colors, defaultOptions, props.options)
 
       this.state = {
         ischarging: false,
         percent: '--'
       }
 
-      this.batteryEvents = [ 'chargingchange', 'chargingtimechange', 'dischargingtimechange', 'levelchange' ]
+      this.batteryEvents = [
+        'chargingchange',
+        'chargingtimechange',
+        'dischargingtimechange',
+        'levelchange'
+      ]
+
       this.handleEvent = this.handleEvent.bind(this)
     }
 
@@ -105,10 +141,10 @@ export function componentFactory(React, colors ) {
       }))
     }
 
-    getColor( batteryState ) {
-      const colors = this.props.options.colors
+    getColor(batteryState) {
+      const colors = this.options.colors
 
-      if ( batteryState.percent <= 20 && !batteryState.ischarging ) {
+      if (batteryState.percent <= 20 && !batteryState.ischarging) {
         return colors.critical
       }
 
@@ -148,11 +184,4 @@ export const validateOptions = (options) => {
   }
 
   return errors
-}
-
-export const defaultOptions = {
-  colors: {
-    fine: 'lightGreen',
-    critical: 'lightRed'
-  }
 }

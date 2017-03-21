@@ -1,13 +1,25 @@
 import { mem } from 'systeminformation'
-import { iconStyles } from '../utils/icons'
 import { colorExists } from '../utils/colors'
-import pluginWrapperFactory from '../core/PluginWrapper'
+import pluginWrapperFactory from './PluginWrapper'
+
+export const defaultOptions = {
+  color: 'white',
+  interval: 1000
+}
+
+function getInstanceOptions(colors, defaults, config) {
+  const options = Object.assign({}, defaults, config)
+  if (!colorExists(options.color)) {
+    options.color = defaults.color
+  }
+  return options
+}
 
 export function componentFactory(React, colors) {
-  const {Component, PropTypes} = React
+  const { Component, PropTypes } = React
 
   const PluginIcon = ({ fillColor }) => (
-    <svg style={iconStyles} xmlns="http://www.w3.org/2000/svg">
+    <svg className="hyperline_plugin_icon" xmlns="http://www.w3.org/2000/svg">
       <g fill="none" fillRule="evenodd">
         <g fill={fillColor}>
           <g id="memory" transform="translate(1.000000, 1.000000)">
@@ -49,12 +61,14 @@ export function componentFactory(React, colors) {
     constructor(props) {
       super(props)
 
+      this.options = getInstanceOptions(colors, defaultOptions, props.options)
+
       this.state = {
         activeMemory: 0,
         totalMemory: 0
       }
 
-      mem().then( m => {
+      mem().then(m => {
         this.state = {
           activeMemory: this.getMb(m.active),
           totalMemory: this.getMb(m.total)
@@ -68,7 +82,7 @@ export function componentFactory(React, colors) {
         mem().then(m => {
           this.setState({activeMemory: this.getMb(m.active)})
         })
-      ), 1000)
+      ), this.options.interval)
     }
 
     componentWillUnmount() {
@@ -102,8 +116,4 @@ export const validateOptions = (options) => {
   }
 
   return errors
-}
-
-export const defaultOptions = {
-  color: 'white'
 }

@@ -1,17 +1,38 @@
 import os from 'os'
-import {iconStyles} from '../utils/icons'
-import {colorExists} from '../utils/colors'
-import pluginWrapperFactory from '../core/PluginWrapper'
+import { colorExists } from '../utils/colors'
+import pluginWrapperFactory from './PluginWrapper'
 
-export function componentFactory( React, colors ) {
-  const {Component, PropTypes} = React
+export const defaultOptions = {
+  colors: {
+    high: 'lightRed',
+    moderate: 'lightYellow',
+    low: 'lightGreen'
+  },
+  interval: 1000
+}
 
-  const PluginIcon = ({fillColor}) => (
-    <svg style={iconStyles} xmlns="http://www.w3.org/2000/svg">
+function getInstanceOptions(colors, defaults, config) {
+  const options = Object.assign({}, defaults, config)
+  for (let key of Object.keys(defaults.colors)) {
+    if (!colorExists(options.colors[key])) {
+      options.colors[key] = defaults.colors[key]
+    }
+  }
+  return options
+}
+
+export function componentFactory(React, colors) {
+  const { Component, PropTypes } = React
+
+  const PluginIcon = ({ fillColor }) => (
+    <svg className="hyperline_plugin_icon" xmlns="http://www.w3.org/2000/svg">
       <g fill="none" fillRule="evenodd">
         <g fill={fillColor} transform="translate(1.000000, 1.000000)">
           <g>
-            <path d="M3,3 L11,3 L11,11 L3,11 L3,3 Z M4,4 L10,4 L10,10 L4,10 L4,4 Z"></path>
+            <path d={
+              'M3,3 L11,3 L11,11 L3,11 L3,3 Z M4,4 ' +
+              'L10,4 L10,10 L4,10 L4,4 Z'
+            }></path>
             <rect x="5" y="5" width="4" height="4"></rect>
             <rect x="4" y="0" width="1" height="2"></rect>
             <rect x="6" y="0" width="1" height="2"></rect>
@@ -52,6 +73,8 @@ export function componentFactory( React, colors ) {
     constructor(props) {
       super(props)
 
+      this.options = getInstanceOptions(colors, defaultOptions, props.options)
+
       this.state = {
         cpuAverage: this.calculateCpuUsage()
       }
@@ -67,7 +90,7 @@ export function componentFactory( React, colors ) {
         this.setState({
           cpuAverage: this.calculateCpuUsage()
         })
-      }, 500)
+      }, this.options.interval)
     }
 
     componentWillUnmount() {
@@ -83,12 +106,12 @@ export function componentFactory( React, colors ) {
 
       const cpus = os.cpus()
 
-      for ( let i = 0, len = cpus.length; i < len; i++ ) {
-        const cpu = cpus[ i ]
+      for (let i = 0, len = cpus.length; i < len; i++) {
+        const cpu = cpus[i]
 
-        for ( let type in cpu.times ) {
-          if ( cpu.times.hasOwnProperty( type ) ) {
-            totalTick += cpu.times[ type ]
+        for (let type in cpu.times) {
+          if ( cpu.times.hasOwnProperty(type)) {
+            totalTick += cpu.times[type]
           }
         }
 
@@ -98,10 +121,10 @@ export function componentFactory( React, colors ) {
       idle = totalIdle / cpus.length
       total = totalTick / cpus.length
 
-      if ( this.info && this.info.idleCpu ) {
+      if (this.info && this.info.idleCpu) {
         const idleDifference = idle - this.info.idleCpu,
           totalDifference = total - this.info.totalCpu
-        averageCpuUsage = 100 - ~~( 100 * idleDifference / totalDifference )
+        averageCpuUsage = 100 - ~~(100 * idleDifference / totalDifference)
       } else {
         averageCpuUsage = 0
       }
@@ -115,11 +138,11 @@ export function componentFactory( React, colors ) {
     }
 
     getColor(cpuAverage) {
-      const colors = this.props.options.colors
+      const colors = this.options.colors
 
-      if ( cpuAverage < 50 ) {
+      if (cpuAverage < 50) {
         return colors.low
-      } else if ( cpuAverage < 75 ) {
+      } else if (cpuAverage < 75) {
         return colors.moderate
       } else {
         return colors.high
@@ -140,7 +163,7 @@ export function componentFactory( React, colors ) {
   }
 }
 
-export const validateOptions = ({colors = false}) => {
+export const validateOptions = ({ colors = false }) => {
   const errors = []
 
   if (!colors) {
@@ -166,12 +189,4 @@ export const validateOptions = ({colors = false}) => {
   }
 
   return errors
-}
-
-export const defaultOptions = {
-  colors: {
-    high: 'lightRed',
-    moderate: 'lightYellow',
-    low: 'lightGreen'
-  }
 }
