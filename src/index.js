@@ -51,7 +51,8 @@ export function decorateHyper(Hyper, { React, notify }) {
       super(props, context)
       this.colors = getColorList(props.colors)
 
-      const pluginConfig = getPluginConfig(props.statline.plugins, notify)
+      const statline = props.statline || {}
+      const pluginConfig = getPluginConfig(statline.plugins, notify)
 
       // Get Plugin components from config.
       this.plugins = pluginConfig.map(({ name, options }) => ({
