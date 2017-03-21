@@ -1,16 +1,38 @@
-import { colorExists } from './colors'
 import plugins from '../plugins'
+
+function isObject(item) {
+  return (
+    item &&
+    typeof item === 'object' &&
+    !Array.isArray(item)
+  )
+}
+
+function deepMerge(target, ...sources) {
+  if (!sources.length) {
+    return target
+  }
+
+  const source = sources.shift()
+
+  if (isObject(target) && isObject(source)) {
+    for (const key in source) {
+      if (isObject(source[key])) {
+        if (!target[key]) {
+          Object.assign(target, { [key]: {} })
+        }
+        deepMerge(target[key], source[key])
+      } else {
+        Object.assign(target, { [key]: source[key] })
+      }
+    }
+  }
+
+  return deepMerge(target, ...sources)
+}
 
 function getPluginFromListByName(pluginList, name) {
   return pluginList.find(each => each.name === name)
-}
-
-function mergeColorConfigs(defaultColor, userColor = false) {
-  if (!userColor || !colorExists(userColor)) {
-    return defaultColor
-  }
-
-  return userColor
 }
 
 function mergePluginConfigs(defaultPlugins, userPlugins, notify) {
@@ -27,53 +49,48 @@ function mergePluginConfigs(defaultPlugins, userPlugins, notify) {
       return newPlugins
     }
 
-    const { options: defaultOptions = false } = getPluginFromListByName(defaultPlugins, name)
+    const defaultPlugin = getPluginFromListByName(defaultPlugins, name)
 
-    if (!defaultOptions) {
+    if (!defaultPlugin || !defaultPlugin.options) {
       notify('HyperLine', `Plugin with name "${name}" does not exist.`)
       return newPlugins
     }
 
-    if (options) {
-      newPlugin.options = defaultOptions
-    }
+    const defaultOptions = defaultPlugin.options
+
+    newPlugin.options = deepMerge({}, defaultOptions, options || {})
 
     const { validateOptions: validator = false } = plugins[name]
     if (validator) {
-      const errors = validator(options)
+      const errors = validator(newPlugin.options)
       if (errors.length > 0) {
         errors.forEach(error => notify(`HyperLine '${name}' plugin`, error))
         newPlugin.options = defaultOptions
       }
     }
 
-    return [ ...newPlugins, plugin ]
+    return [ ...newPlugins, newPlugin ]
   }, [])
 }
 
-export function getDefaultConfig(plugins) {
-  return {
-    color: 'black',
-    plugins: Object.keys(plugins).reduce((pluginsArray, pluginName) => {
-      const { defaultOptions } = plugins[pluginName]
+function getDefaultPluginConfig(plugins) {
+  return Object.keys(plugins).reduce((pluginsArray, pluginName) => {
+    const { defaultOptions } = plugins[pluginName]
 
-      const plugin = {
-        name: pluginName,
-        options: defaultOptions
-      }
+    const plugin = {
+      name: pluginName,
+      options: defaultOptions
+    }
 
-      return [ ...pluginsArray, plugin ]
-    }, [])
-  }
+    return [ ...pluginsArray, plugin ]
+  }, [])
 }
 
-export function mergeConfigs(defaultConfig, userConfig = false, notify) {
-  if (!userConfig) {
-    return defaultConfig
-  }
-
-  return {
-    color: mergeColorConfigs(defaultConfig.color, userConfig.color),
-    plugins: mergePluginConfigs(defaultConfig.plugins, userConfig.plugins, notify)
-  }
+export function getPluginConfig(userPluginConfig, notify) {
+  return mergePluginConfigs(
+    getDefaultPluginConfig(plugins),
+    userPluginConfig,
+    notify
+  )
 }
+
