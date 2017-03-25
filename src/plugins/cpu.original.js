@@ -4,13 +4,11 @@ import pluginWrapperFactory from './PluginWrapper'
 
 export const defaultOptions = {
   colors: {
-    general: 'lightBlue',
     high: 'lightRed',
     moderate: 'lightYellow',
     low: 'lightGreen'
   },
-  interval: 2000,
-  expanded: false
+  interval: 1000
 }
 
 function getInstanceOptions(colors, defaults, config) {
@@ -26,8 +24,8 @@ function getInstanceOptions(colors, defaults, config) {
 export function componentFactory(React, colors) {
   const { Component, PropTypes } = React
 
-  const PluginIcon = ({ fillColor, style }) => (
-    <svg className="statline_plugin_icon" style={style} xmlns="http://www.w3.org/2000/svg">
+  const PluginIcon = ({ fillColor }) => (
+    <svg className="statline_plugin_icon" xmlns="http://www.w3.org/2000/svg">
       <g fill="none" fillRule="evenodd">
         <g fill={fillColor} transform="translate(1.000000, 1.000000)">
           <g>
@@ -58,8 +56,7 @@ export function componentFactory(React, colors) {
   )
 
   PluginIcon.propTypes = {
-    fillColor: PropTypes.string,
-    style: PropTypes.object
+    fillColor: PropTypes.string
   }
 
   return class extends Component {
@@ -79,15 +76,20 @@ export function componentFactory(React, colors) {
       this.options = getInstanceOptions(colors, defaultOptions, props.options)
 
       this.state = {
-        cpus: [],
-        avg: 0
+        cpuAverage: this.calculateCpuUsage()
       }
-      this.calculateCpuUsage()
+
+      this.info = {
+        idleCpu: false,
+        totalCpu: false
+      }
     }
 
     componentDidMount() {
       this.interval = setInterval(() => {
-        this.calculateCpuUsage()
+        this.setState({
+          cpuAverage: this.calculateCpuUsage()
+        })
       }, this.options.interval)
     }
 
@@ -95,89 +97,52 @@ export function componentFactory(React, colors) {
       clearInterval(this.interval)
     }
 
-    // calculateCpuUsage() {
-    //   let totalIdle = 0,
-    //     totalTick = 0,
-    //     idle,
-    //     total,
-    //     averageCpuUsage
-
-    //   const cpus = os.cpus()
-
-    //   for (let i = 0, len = cpus.length; i < len; i++) {
-    //     const cpu = cpus[i]
-
-    //     for (let type in cpu.times) {
-    //       if ( cpu.times.hasOwnProperty(type)) {
-    //         totalTick += cpu.times[type]
-    //       }
-    //     }
-
-    //     totalIdle += cpu.times.idle
-    //   }
-
-    //   idle = totalIdle / cpus.length
-    //   total = totalTick / cpus.length
-
-    //   if (this.info && this.info.idleCpu) {
-    //     const idleDifference = idle - this.info.idleCpu,
-    //       totalDifference = total - this.info.totalCpu
-    //     averageCpuUsage = 100 - ~~(100 * idleDifference / totalDifference)
-    //   } else {
-    //     averageCpuUsage = 0
-    //   }
-
-    //   this.info = {
-    //     idleCpu: idle,
-    //     totalCpu: total
-    //   }
-
-    //   return averageCpuUsage
-    // }
-
     calculateCpuUsage() {
-      const cpus = os.cpus().map((cpu, index) => {
-        const
-          times = cpu.times,
-          cpuInfo = this.state.cpus.find(cpu => cpu.index == index)
+      let totalIdle = 0,
+        totalTick = 0,
+        idle,
+        total,
+        averageCpuUsage
 
-        let
-          idle = times.idle,
-          total = Object.keys(times).reduce((tot, key) => tot + times[key], 0),
-          percentage
+      const cpus = os.cpus()
 
-        if (cpuInfo) {
-          total -= cpuInfo.total
-          idle -= cpuInfo.idle
-          percentage = 100 - ~~(100 * idle / total)
-        } else {
-          percentage = 0
+      for (let i = 0, len = cpus.length; i < len; i++) {
+        const cpu = cpus[i]
+
+        for (let type in cpu.times) {
+          if ( cpu.times.hasOwnProperty(type)) {
+            totalTick += cpu.times[type]
+          }
         }
 
-        return {
-          index,
-          total,
-          idle,
-          percentage
-        }
-      })
+        totalIdle += cpu.times.idle
+      }
 
-      let avg = cpus.reduce((agg, cpu) => {
-        agg.total += cpu.total
-        agg.idle += cpu.idle
-        return agg
-      }, { total: 0, idle: 0 })
-      avg = 100 - ~~(100 * avg.idle / avg.total)
+      idle = totalIdle / cpus.length
+      total = totalTick / cpus.length
 
-      this.setState({ cpus, avg })
+      if (this.info && this.info.idleCpu) {
+        const idleDifference = idle - this.info.idleCpu,
+          totalDifference = total - this.info.totalCpu
+        averageCpuUsage = 100 - ~~(100 * idleDifference / totalDifference)
+      } else {
+        averageCpuUsage = 0
+      }
+
+      this.info = {
+        idleCpu: idle,
+        totalCpu: total
+      }
+
+      return averageCpuUsage
     }
 
-    getColor(percentage) {
+    getColor(cpuAverage) {
       const colors = this.options.colors
 
-      if (percentage < 50) {
+      if (cpuAverage < 50) {
         return colors.low
-      } else if (percentage < 75) {
+      } else if (cpuAverage < 75) {
         return colors.moderate
       } else {
         return colors.high
@@ -185,32 +150,15 @@ export function componentFactory(React, colors) {
     }
 
     render() {
-      const
-        PluginWrapper = pluginWrapperFactory(React),
-        getColor = (percentage) => colors[this.getColor(percentage)]
+      const avg = this.state.cpuAverage.toFixed(0)
+      const PluginWrapper = pluginWrapperFactory(React)
+      const fillColor = colors[this.getColor(this.state.cpuAverage)]
 
-      if (this.options.expanded) {
-        const fillColor = colors[this.options.colors.general]
-        return (
-          <PluginWrapper color={fillColor}>
-            <PluginIcon fillColor={fillColor} style={{ marginRight: 0 }} />
-            {this.state.cpus.map(cpu => (
-              <div style={{ marginLeft: '5px' }}>
-                {cpu.index}:
-                <span style={{ color: getColor(cpu.percentage) }}>{cpu.percentage}%</span>
-              </div>
-            ))}
-          </PluginWrapper>
-        )
-      } else {
-        const fillColor = getColor(this.state.avg)
-
-        return (
-          <PluginWrapper color={fillColor}>
-            <PluginIcon fillColor={fillColor} /> {this.state.avg}%
-          </PluginWrapper>
-        )
-      }
+      return (
+        <PluginWrapper color={fillColor}>
+          <PluginIcon fillColor={fillColor} /> {avg}%
+        </PluginWrapper>
+      )
     }
   }
 }
@@ -221,12 +169,6 @@ export const validateOptions = ({ colors = false }) => {
   if (!colors) {
     errors.push('\'colors\' object is required but missing.')
   } else {
-    if (!colors.general) {
-      errors.push('\'colors.general\' color string is required but missing.')
-    } else if (!colorExists(colors.general)) {
-      errors.push(`invalid color '${colors.general}'`)
-    }
-
     if (!colors.high) {
       errors.push('\'colors.high\' color string is required but missing.')
     } else if (!colorExists(colors.high)) {
